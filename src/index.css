@@ -1,0 +1,42 @@
+:root {
+  --text: #4b5563;
+  --text-h: #1f2937;
+  --bg: #f4f6f8;
+  --border: #e5e7eb;
+  --accent: #007bff;
+  --accent-hover: #0056b3;
+  --danger: #dc3545;
+  --sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+
+  font-family: var(--sans);
+  color-scheme: light dark;
+  color: var(--text);
+  background-color: var(--bg);
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg);
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3, p {
+  margin: 0;
+}
+
+input, button {
+  font-family: var(--sans);
+}
