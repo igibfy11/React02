@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ProductosProvider } from './context/ProductosContext';
+import { PedidosProvider } from './context/PedidosContext';
 import Login from './pages/Login';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ClienteDashboard from './pages/cliente/ClienteDashboard';
@@ -21,8 +23,7 @@ function AppRoutes() {
           {user.role === 'admin' && <Route path="/admin" element={<AdminDashboard />} />}
           {user.role === 'cliente' && <Route path="/cliente" element={<ClienteDashboard />} />}
           {user.role === 'vendedor' && <Route path="/vendedor" element={<VendedorDashboard />} />}
-          
-          {/* Redirección automática al panel correspondiente según el rol autenticado */}
+
           <Route path="*" element={<Navigate to={`/${user.role}`} replace />} />
         </>
       )}
@@ -33,9 +34,13 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
+      <ProductosProvider>
+        <PedidosProvider> {/* Conectamos el sistema real de pedidos */}
+          <Router>
+            <AppRoutes />
+          </Router>
+        </PedidosProvider>
+      </ProductosProvider>
     </AuthProvider>
   );
 }

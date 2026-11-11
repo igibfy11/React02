@@ -1,68 +1,74 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useProductos } from '../../context/ProductosContext';
 import '../Dashboard.css';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
-  
-  const [productos, setProductos] = useState([
-    { id: 1, nombre: 'Gel Limpiador Facial', precio: 45000, estado: 'Activo', img: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&auto=format&fit=crop&q=60' },
-    { id: 2, nombre: 'Molde Facial de Hielo', precio: 28000, estado: 'Activo', img: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=400&auto=format&fit=crop&q=60' },
-    { id: 3, nombre: 'Mascarilla de Hidratación', precio: 15000, estado: 'Suspendido', img: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&auto=format&fit=crop&q=60' }
-  ]);
+  const { productos, agregarProducto, toggleEstadoProducto } = useProductos(); // Obtenemos funciones del contexto real
 
+  // Estados locales para capturar los datos del nuevo producto a registrar
   const [nuevoNombre, setNuevoNombre] = useState('');
   const [nuevoPrecio, setNuevoPrecio] = useState('');
+  const [nuevaDesc, setNuevaDesc] = useState('');
   const [nuevaImg, setNuevaImg] = useState('');
 
-  const agregarProducto = (e) => {
+  // Función para manejar el envío del formulario de nuevo producto
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!nuevoNombre || !nuevoPrecio) return;
-    
+
     const nuevo = {
-      id: Date.now(),
+      id: Date.now(), // ID único basado en la fecha actual
       nombre: nuevoNombre,
       precio: Number(nuevoPrecio),
+      desc: nuevaDesc || 'Producto exclusivo de skincare.',
       estado: 'Activo',
       img: nuevaImg || 'https://images.unsplash.com/photo-1608248597359-9d74b075b3a2?w=400&auto=format&fit=crop&q=60'
     };
 
-    setProductos([...productos, nuevo]);
+    agregarProducto(nuevo); // Guardamos en el contexto real (localStorage)
+
+    // Limpiamos los campos del formulario tras registrar
     setNuevoNombre('');
     setNuevoPrecio('');
+    setNuevaDesc('');
     setNuevaImg('');
-  };
-
-  const toggleSuspender = (id) => {
-    setProductos(productos.map(p => p.id === id ? { ...p, estado: p.estado === 'Activo' ? 'Suspendido' : 'Activo' } : p));
   };
 
   return (
     <div className="dashboard-container">
+      {/* Cabecera del panel */}
       <div className="dashboard-header">
-        <h1 className="dashboard-title">Panel de Administración — Inventario Skincare</h1>
+        <h1 className="dashboard-title">Panel de Administración — Inventario Real</h1>
         <button onClick={logout} className="logout-button">Cerrar Sesión</button>
       </div>
 
+      {/* Formulario para agregar productos */}
       <div className="form-container-inline">
-        <h3>➕ Registrar Nuevo Producto</h3>
-        <form onSubmit={agregarProducto} className="form-grid">
+        <h3>➕ Registrar Nuevo Producto en el Sistema</h3>
+        <form onSubmit={handleSubmit} className="form-grid">
           <div className="form-field">
-            <label>Nombre del Producto</label>
-            <input type="text" placeholder="Ej: Sérum Vitamina C" value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} required />
+            <label>Nombre</label>
+            <input type="text" placeholder="Ej: Protector Solar SPF 50" value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} required />
           </div>
           <div className="form-field">
             <label>Precio ($)</label>
             <input type="number" placeholder="Ej: 55000" value={nuevoPrecio} onChange={e => setNuevoPrecio(e.target.value)} required />
           </div>
           <div className="form-field">
-            <label>URL de Imagen (Opcional)</label>
+            <label>Descripción</label>
+            <input type="text" placeholder="Breve descripción..." value={nuevaDesc} onChange={e => setNuevaDesc(e.target.value)} />
+          </div>
+          <div className="form-field">
+            <label>URL Imagen</label>
             <input type="text" placeholder="https://..." value={nuevaImg} onChange={e => setNuevaImg(e.target.value)} />
           </div>
           <button type="submit" className="action-btn">Guardar Producto</button>
         </form>
       </div>
 
+      {/* Tabla para listar y suspender/activar productos */}
       <div className="dashboard-card">
         <h3>Catálogo General y Gestión de Estado</h3>
         <table className="data-table">
@@ -83,7 +89,8 @@ export default function AdminDashboard() {
                 <td>${p.precio.toLocaleString()}</td>
                 <td><span className={`badge ${p.estado.toLowerCase()}`}>{p.estado}</span></td>
                 <td>
-                  <button onClick={() => toggleSuspender(p.id)} className={`action-btn ${p.estado === 'Activo' ? 'danger' : ''}`}>
+                  {/* Botón para alternar el estado Activo / Suspendido */}
+                  <button onClick={() => toggleEstadoProducto(p.id)} className={`action-btn ${p.estado === 'Activo' ? 'danger' : ''}`}>
                     {p.estado === 'Activo' ? 'Suspender' : 'Activar'}
                   </button>
                 </td>

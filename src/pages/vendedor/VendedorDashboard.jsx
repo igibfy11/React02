@@ -1,29 +1,29 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { usePedidos } from '../../context/PedidosContext';
 import '../Dashboard.css';
 
 export default function VendedorDashboard() {
-  const { user, logout } = useAuth();
-  
-  const [pedidos, setPedidos] = useState([
-    { id: 101, cliente: 'Mariana Gomez', detalle: 'Gel Limpiador Facial (x1)', total: 45000, estado: 'Pendiente' },
-    { id: 102, cliente: 'Carlos Ruiz', detalle: 'Molde Facial de Hielo (x2)', total: 56000, estado: 'Completado' },
-    { id: 103, cliente: 'Daniela Ospina', detalle: 'Sérum Antioxidante (x1)', total: 62000, estado: 'Pendiente' }
-  ]);
+  const { logout } = useAuth();
+  const { pedidos, toggleEstadoPedido } = usePedidos(); // Leemos los pedidos reales y la función de actualizar
 
-  const cambiarEstado = (id) => {
-    setPedidos(pedidos.map(p => p.id === id ? { ...p, estado: p.estado === 'Pendiente' ? 'Completado' : 'Pendiente' } : p));
-  };
+  // Calculamos dinámicamente el dinero de los pedidos que ya están 'Completado'
+  const totalVentas = pedidos
+    .filter(p => p.estado === 'Completado')
+    .reduce((acc, p) => acc + p.total, 0);
 
-  const totalVentas = pedidos.filter(p => p.estado === 'Completado').reduce((acc, p) => acc + p.total, 0);
+  // Contamos cuántos pedidos siguen en estado 'Pendiente'
+  const pedidosPendientes = pedidos.filter(p => p.estado === 'Pendiente').length;
 
   return (
     <div className="dashboard-container">
+      {/* Cabecera */}
       <div className="dashboard-header">
         <h1 className="dashboard-title">Panel de Ventas y Reportes</h1>
         <button onClick={logout} className="logout-button">Cerrar Sesión</button>
       </div>
 
+      {/* Tarjetas de estadísticas calculadas en tiempo real */}
       <div className="stats-row">
         <div className="stat-box">
           <h4>Ventas Totales Completadas</h4>
@@ -31,7 +31,7 @@ export default function VendedorDashboard() {
         </div>
         <div className="stat-box">
           <h4>Pedidos Pendientes</h4>
-          <p>{pedidos.filter(p => p.estado === 'Pendiente').length}</p>
+          <p>{pedidosPendientes}</p>
         </div>
         <div className="stat-box">
           <h4>Total de Órdenes</h4>
@@ -39,6 +39,7 @@ export default function VendedorDashboard() {
         </div>
       </div>
 
+      {/* Tabla con los pedidos reales generados por los clientes */}
       <div className="dashboard-card">
         <h3>Consulta y Gestión de Pedidos de Clientes</h3>
         <table className="data-table">
@@ -61,7 +62,8 @@ export default function VendedorDashboard() {
                 <td>${p.total.toLocaleString()}</td>
                 <td><span className={`badge ${p.estado.toLowerCase()}`}>{p.estado}</span></td>
                 <td>
-                  <button onClick={() => cambiarEstado(p.id)} className="action-btn secondary">
+                  {/* Botón que guarda el cambio de estado de forma permanente */}
+                  <button onClick={() => toggleEstadoPedido(p.id)} className="action-btn secondary">
                     {p.estado === 'Pendiente' ? 'Marcar Completado' : 'Reabrir'}
                   </button>
                 </td>

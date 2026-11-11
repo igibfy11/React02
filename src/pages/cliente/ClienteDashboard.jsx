@@ -1,36 +1,45 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useProductos } from '../../context/ProductosContext';
+import { usePedidos } from '../../context/PedidosContext';
 import '../Dashboard.css';
 
 export default function ClienteDashboard() {
   const { user, logout } = useAuth();
+  const { productos } = useProductos();
+  const { registrarPedido } = usePedidos(); // Obtenemos la función para guardar la compra real
+
   const [busqueda, setBusqueda] = useState('');
   const [carrito, setCarrito] = useState([]);
 
-  const productosDisponibles = [
-    { id: 1, nombre: 'Gel Limpiador Facial', precio: 45000, desc: 'Limpieza profunda con extracto de manzanilla.', img: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&auto=format&fit=crop&q=60' },
-    { id: 2, nombre: 'Molde Facial de Hielo', precio: 28000, desc: 'Ideal para reducir poros y desinflamar el rostro.', img: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=400&auto=format&fit=crop&q=60' },
-    { id: 3, nombre: 'Mascarilla Hidratante', precio: 15000, desc: 'Tela nutritiva con ácido hialurónico.', img: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&auto=format&fit=crop&q=60' },
-    { id: 4, nombre: 'Sérum Facial Antioxidante', precio: 62000, desc: 'Vitamina C pura para iluminar la piel.', img: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400&auto=format&fit=crop&q=60' }
-  ];
+  // Filtramos solo los productos activos
+  const productosActivos = productos.filter(p => p.estado === 'Activo');
 
-  const productosFiltrados = productosDisponibles.filter(p => 
+  // Filtramos según el buscador
+  const productosFiltrados = productosActivos.filter(p =>
     p.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  // Agregar al carrito
   const agregarAlCarrito = (producto) => {
     setCarrito([...carrito, producto]);
   };
 
+  // Calcular total
   const totalCarrito = carrito.reduce((acc, item) => acc + item.precio, 0);
 
+  // Procesar y guardar la compra real en el sistema
   const realizarCompra = () => {
     if (carrito.length === 0) {
       alert('Tu carrito está vacío.');
       return;
     }
-    alert(`¡Compra realizada con éxito por un total de $${totalCarrito.toLocaleString()}! Gracias por confiar en Luminaria.`);
-    setCarrito([]);
+
+    // Registramos el pedido real con el nombre del usuario logueado
+    registrarPedido(user?.username || 'Cliente Web', carrito, totalCarrito);
+
+    alert(`¡Compra realizada con éxito por $${totalCarrito.toLocaleString()}! Tu pedido ha sido enviado al área de ventas.`);
+    setCarrito([]); // Vaciamos el carrito
   };
 
   return (
@@ -47,29 +56,33 @@ export default function ClienteDashboard() {
       </div>
 
       <div className="controls-bar">
-        <input 
-          type="text" 
-          className="search-input" 
-          placeholder="🔍 Buscar productos de skincare..." 
-          value={busqueda} 
-          onChange={e => setBusqueda(e.target.value)} 
+        <input
+          type="text"
+          className="search-input"
+          placeholder="🔍 Buscar productos de skincare..."
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
         />
       </div>
 
       <div className="products-grid">
-        {productosFiltrados.map(p => (
-          <div key={p.id} className="product-card">
-            <img src={p.img} alt={p.nombre} className="product-img" />
-            <div className="product-info">
-              <div className="product-title">{p.nombre}</div>
-              <div className="product-price">${p.precio.toLocaleString()}</div>
-              <div className="product-desc">{p.desc}</div>
-              <button onClick={() => agregarAlCarrito(p)} className="action-btn">
-                Agregar al Carrito
-              </button>
+        {productosFiltrados.length === 0 ? (
+          <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#6b7268', padding: '40px' }}>No hay productos disponibles en este momento.</p>
+        ) : (
+          productosFiltrados.map(p => (
+            <div key={p.id} className="product-card">
+              <img src={p.img} alt={p.nombre} className="product-img" />
+              <div className="product-info">
+                <div className="product-title">{p.nombre}</div>
+                <div className="product-price">${p.precio.toLocaleString()}</div>
+                <div className="product-desc">{p.desc}</div>
+                <button onClick={() => agregarAlCarrito(p)} className="action-btn">
+                  Agregar al Carrito
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
